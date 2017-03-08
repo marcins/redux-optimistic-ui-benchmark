@@ -52,7 +52,14 @@ const actionCreator = (id, optimisticType) => {
 
 let deferred = [];
 let i = 0;
-const addDeferred = (fn, i, timeout) => deferred.push({ fn, i, runAfter: Date.now() + timeout });
+const addDeferred = (txId, type, timeout) => deferred.push({
+    txId,
+    type,
+    runAfter: Date.now() + timeout
+});
+const processDeferred = (items) => {
+    items.forEach(value => store.dispatch(actionCreator(value.txId, value.type)));
+}
 
 const timer = setInterval(() => {
     const sample = i++;
@@ -89,19 +96,18 @@ const timer = setInterval(() => {
 
     store.dispatch(actionCreator(sample, optimist.BEGIN));
     if (select <= 6) { // 30% commit in 10ms
-        addDeferred(() => store.dispatch(actionCreator(sample, optimist.COMMIT)), sample, 10);
+        addDeferred(sample, optimist.COMMIT, 10);
     } else if(select <= 8) { // 20% commit in 1000ms
-        addDeferred(() => store.dispatch(actionCreator(sample, optimist.COMMIT)), sample, 1000);
+        addDeferred(sample, optimist.COMMIT, 1000);
     } else { // 10% revert after 250ms?
-        addDeferred(() => store.dispatch(actionCreator(sample, optimist.REVERT)), sample, 250);
+        addDeferred(sample, optimist.REVERT, 250);
     }
 
-    d.expired.forEach(value => value.fn());
-
+    processDeferred(d.expired);
 }, 0);
 
 function cleanup() {
-    deferred.forEach(value => value.fn());
+    processDeferred(deferred);
     const endTime = Date.now();
     console.log("Elapsed time", endTime - startTime, "ms");
     console.log(JSON.stringify(store.getState(), null, 2));
