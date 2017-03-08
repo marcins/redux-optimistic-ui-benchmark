@@ -1,0 +1,15 @@
+{
+  "name": "redux-optimistic-ui-benchmark",
+  "version": "1.0.0",
+  "description": "",
+  "main": "benchmark.js",
+  "scripts": {
+    "benchmark": "NODE_ENV=production node benchmark.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "gc-stats": "^1.0.0",
+    "redux": "^3.6.0"
+  }
+}
